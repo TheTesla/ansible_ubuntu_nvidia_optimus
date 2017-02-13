@@ -1,0 +1,27 @@
+---
+- hosts: local
+  remote_user: stefan
+  tasks:
+  - name: Configure BOINC - init.d optirun
+    lineinfile:
+      dest: /etc/init.d/boinc-client
+      regexp: '^BOINC_CLIENT='
+      line: 'BOINC_CLIENT=optirun /usr/bin/boinc'
+    become: true
+
+  - name: Configure BOINC - systemd optirun
+    lineinfile:
+      dest: /lib/systemd/system/boinc-client.service
+      regexp: '^ExecStart='
+      line: "ExecStart=/bin/sh -c 'optirun /usr/bin/boinc --dir /var/lib/boinc-client >/var/log/boinc.log 2>/var/log/boincerr.log\'"
+    become: true
+
+  - name: boinc user must be in bumblebee group
+    user:
+      name: boinc
+      append: yes
+      groups: bumblebee
+      createhome: no
+
+                           
+    

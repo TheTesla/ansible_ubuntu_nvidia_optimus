@@ -1,0 +1,69 @@
+---
+- hosts: local
+  remote_user: stefan
+  tasks:
+  - name: Set Nvidia driver version
+    set_fact:
+      nvdrvvers: 375
+
+  - name: Switch to Intel graphics
+    command: prime-select intel
+    become: true
+
+  - name: Add Bumblebee testing package repo
+    apt_repository:
+      repo: 'ppa:bumblebee/testing' 
+    become: true
+
+  - name: Install Bumblebee testing 
+    apt: name={{ item }} state=latest
+    with_items:
+      - bumblebee
+    become: true
+
+  - name: Blacklist nvidia-driver
+    blockinfile:
+      dest: /etc/modprobe.d/bumblebee.conf
+      block: |
+        blacklist nvidia-{{ nvdrvvers }}
+        blacklist nvidia-{{ nvdrvvers }}-updates
+        blacklist nvidia-experimental-{{ nvdrvvers }}
+    become: true
+
+  - name: Configure Bumblebee - use nvidia propretary driver
+    lineinfile:
+      dest: /etc/bumblebee/bumblebee.conf
+      regexp: '^Driver='
+      line: 'Driver=nvidia'
+    become: true
+
+  - name: Configure Bumblebee - specify nvidia driver version {{ nvdrvvers }}
+    lineinfile:
+      dest: /etc/bumblebee/bumblebee.conf
+      regexp: '^KernelDriver='
+      line: 'KernelDriver=nvidia-{{ nvdrvvers }}'
+    become: true
+
+  - name: Configure Bumblebee - set nvidia driver library path
+    lineinfile:
+      dest: /etc/bumblebee/bumblebee.conf
+      regexp: '^LibraryPath='
+      line: 'LibraryPath=/usr/lib/nvidia-{{ nvdrvvers }}:/usr/lib32/nvidia-{{ nvdrvvers }}'
+    become: true
+
+  - name: Configure Bumblebee - set XorgModulePath
+    lineinfile:
+      dest: /etc/bumblebee/bumblebee.conf
+      regexp: '^XorgModulePath='
+      line: 'XorgModulePath=/usr/lib/nvidia-{{ nvdrvvers }}/xorg,/usr/lib/xorg/modules'
+    become: true
+
+  - name: update-alternatives
+    alternatives:
+      name: x86_64-linux-gnu_gl_conf
+      path: /usr/lib/nvidia-{{ nvdrvvers }}-prime/ld.so.conf 
+
+
+
+                           
+    
