@@ -13,6 +13,7 @@
   - name: Add Bumblebee testing package repo
     apt_repository:
       repo: 'ppa:bumblebee/testing' 
+      state: absent
     become: true
 
   - name: Uninstall Bumblebee testing 

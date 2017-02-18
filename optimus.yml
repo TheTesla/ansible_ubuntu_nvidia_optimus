@@ -13,6 +13,8 @@
   - name: Add Bumblebee testing package repo
     apt_repository:
       repo: 'ppa:bumblebee/testing' 
+      state: absent
+      update_cache: yes
     become: true
 
   - name: Install Bumblebee testing 
@@ -31,31 +33,35 @@
     become: true
 
   - name: Configure Bumblebee - use nvidia propretary driver
-    lineinfile:
+    ini_file:
       dest: /etc/bumblebee/bumblebee.conf
-      regexp: '^Driver='
-      line: 'Driver=nvidia'
+      section: 'bumblebeed'
+      option: 'Driver'
+      value: 'nvidia'
     become: true
 
   - name: Configure Bumblebee - specify nvidia driver version {{ nvdrvvers }}
-    lineinfile:
+    ini_file:
       dest: /etc/bumblebee/bumblebee.conf
-      regexp: '^KernelDriver='
-      line: 'KernelDriver=nvidia-{{ nvdrvvers }}'
+      section: 'driver-nvidia'
+      option: 'KernelDriver'
+      value: 'nvidia-{{ nvdrvvers }}'
     become: true
 
   - name: Configure Bumblebee - set nvidia driver library path
-    lineinfile:
+    ini_file:
       dest: /etc/bumblebee/bumblebee.conf
-      regexp: '^LibraryPath='
-      line: 'LibraryPath=/usr/lib/nvidia-{{ nvdrvvers }}:/usr/lib32/nvidia-{{ nvdrvvers }}'
+      section: 'driver-nvidia'
+      option: 'LibraryPath'
+      value: '/usr/lib/nvidia-{{ nvdrvvers }}:/usr/lib32/nvidia-{{ nvdrvvers }}'
     become: true
 
   - name: Configure Bumblebee - set XorgModulePath
-    lineinfile:
+    ini_file:
       dest: /etc/bumblebee/bumblebee.conf
-      regexp: '^XorgModulePath='
-      line: 'XorgModulePath=/usr/lib/nvidia-{{ nvdrvvers }}/xorg,/usr/lib/xorg/modules'
+      section: 'driver-nvidia'
+      option: 'XorgModulePath'
+      value: '/usr/lib/nvidia-{{ nvdrvvers }}/xorg,/usr/lib/xorg/modules'
     become: true
 
   - name: update-alternatives
@@ -63,6 +69,11 @@
       name: x86_64-linux-gnu_gl_conf
       path: /usr/lib/nvidia-{{ nvdrvvers }}-prime/ld.so.conf 
 
+  - name: bumblebeed restart
+    systemd:
+      name: bumblebeed
+      state: restarted
+    become: true
 
 
                            

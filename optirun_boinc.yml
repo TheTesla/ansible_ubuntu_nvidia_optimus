@@ -22,6 +22,7 @@
       append: yes
       groups: bumblebee
       createhome: no
+    become: true
 
                            
     
