@@ -10,10 +10,27 @@
     become: true
 
   - name: Configure BOINC - systemd optirun
-    lineinfile:
-      dest: /lib/systemd/system/boinc-client.service
-      regexp: '^ExecStart='
-      line: "ExecStart=/bin/sh -c 'optirun /usr/bin/boinc --dir /var/lib/boinc-client >/var/log/boinc.log 2>/var/log/boincerr.log\'"
+    ini_file:
+      path: /lib/systemd/system/boinc-client.service
+      section: 'Service'
+      option: 'ExecStart'
+      value: "/bin/sh -c 'optirun /usr/bin/boinc --dir /var/lib/boinc-client >/var/log/boinc.log 2>/var/log/boincerr.log\'"
+    become: true
+
+  - name: Configure BOINC - systemd optirun Requires bumblebeed
+    ini_file:
+      path: /lib/systemd/system/boinc-client.service
+      section: 'Unit'
+      option: 'Requires'
+      value: 'bumblebeed.service'
+    become: true
+
+  - name: Configure BOINC - systemd optirun starts After bumblebeed
+    ini_file:
+      path: /lib/systemd/system/boinc-client.service
+      section: 'Unit'
+      option: 'After'
+      value: 'network.target bumblebeed.service'
     become: true
 
   - name: boinc user must be in bumblebee group
