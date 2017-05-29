@@ -6,10 +6,6 @@
     set_fact:
       nvdrvvers: 375
 
-  - name: Set driver name
-    set_fact:
-      driver-name: driver-nvidia
-
   - name: Switch to Intel graphics
     command: prime-select intel
     become: true
@@ -17,12 +13,21 @@
   - name: Add Bumblebee testing package repo
     apt_repository:
       repo: 'ppa:bumblebee/testing' 
-      state: absent
+      state: present
       update_cache: yes
     become: true
 
+  - name: Uninstall old Bumblebee
+    apt: name={{ item }} state=removed
+    with_items:
+      - bumblebee
+    become: true
+
   - name: Install Bumblebee testing 
-    apt: name={{ item }} state=latest
+    apt: 
+      name: '{{ item }}'
+      state: latest
+      force: yes
     with_items:
       - bumblebee
     become: true
@@ -41,13 +46,13 @@
       dest: /etc/bumblebee/bumblebee.conf
       section: 'bumblebeed'
       option: 'Driver'
-      value: '{{ driver-name }}'
+      value: 'nvidia'
     become: true
 
   - name: Configure Bumblebee - specify nvidia driver version {{ nvdrvvers }}
     ini_file:
       dest: /etc/bumblebee/bumblebee.conf
-      section: '{{ driver-name }}'
+      section: 'driver-nvidia'
       option: 'KernelDriver'
       value: 'nvidia-{{ nvdrvvers }}'
     become: true
@@ -55,7 +60,7 @@
   - name: Configure Bumblebee - set nvidia driver library path
     ini_file:
       dest: /etc/bumblebee/bumblebee.conf
-      section: '{{ driver-name }}'
+      section: 'driver-nvidia'
       option: 'LibraryPath'
       value: '/usr/lib/nvidia-{{ nvdrvvers }}:/usr/lib32/nvidia-{{ nvdrvvers }}'
     become: true
