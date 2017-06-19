@@ -1,0 +1,31 @@
+---
+- hosts: local
+  remote_user: stefan
+  tasks:
+
+  - name: Switch to Intel graphics
+    command: prime-select intel
+    become: true
+    become_method: sudo
+
+  - name: restart bumblebeed
+    service:
+      name: bumblebeed
+      state: restarted
+    become: true
+    become_method: sudo
+
+  - name: restart X server
+    service:
+      name: lightdm
+      state: restarted
+    become: true
+    become_method: sudo
+
+  - name: restart bumblebeed again (to make sure everything works)
+    service:
+      name: bumblebeed
+      state: restarted
+    become: true
+    become_method: sudo
+
