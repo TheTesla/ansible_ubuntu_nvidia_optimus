@@ -30,6 +30,7 @@
       force: yes
     with_items:
       - bumblebee
+      - primus
     become: true
 
   - name: Blacklist nvidia-driver
